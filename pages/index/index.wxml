@@ -1,0 +1,41 @@
+<view wx:if="{{!userInfo}}">
+    <view wx:if="{{isHide}}">
+        <view wx:if="{{canIUse}}" >
+            <view>
+                <button class='bottom' type='primary' open-type="getUserInfo" lang="zh_CN" bindgetuserinfo="bindGetUserInfo">
+                        成为老师
+                </button>
+            </view>
+            <view>
+                <button class='bottom' type='primary' open-type="getUserInfo" lang="zh_CN" bindgetuserinfo="bindGetUserInfo">
+                        成为老师
+                </button>
+            </view>
+            <view><button type="default"> 广告位 </button></view>
+        </view>
+    </view>
+</view>
+
+<view wx:else>已登陆,{{userInfo.nickName}}</view>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

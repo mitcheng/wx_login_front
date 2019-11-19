@@ -1,0 +1,14 @@
+<form bindsubmit="formSubmit" bindreset="formReset">
+  <view class="section">
+    <view class="section__title">昵称</view>
+    <input name="nickName" placeholder="昵称" value="{{userInfo.nickName}}"/>
+  </view>
+   <view class="section">
+    <view class="section__title">手机号</view>
+    <input name="phone" placeholder="手机号"/>
+  </view>
+  <view class="btn-area">
+    <button formType="submit">提交</button>
+    <button formType="reset">重置</button>
+  </view>
+</form>
