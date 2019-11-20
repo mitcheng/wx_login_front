@@ -5,50 +5,69 @@ Page({
     //判断小程序的API，回调，参数，组件等是否在当前版本可用。
     canIUse: wx.canIUse('button.open-type.getUserInfo'),
     isHide: false,
-    userInfo: null
+    hasLogin: false
   },
 
   onLoad: function () {
     var that = this;
-    that.setData({
-      userInfo: wx.getStorageSync("userInfo")
-    });
     // 查看是否授权
     wx.getSetting({
       success: function (res) {
         // 已授权,进行登陆
         if (res.authSetting['scope.userInfo']) {
-          wx.login({
-            success: res => {
-              // 获取服务器的token
-              wx.request({
-                url: getToken,
-                method: 'GET',
-                header: {
-                  'content-type': 'application/json' // 默认值
-                },
-                data: {
-                  code: res.code
-                },
-                success: function (res) {
-                  if (res.data.code == 0) {
-                    wx.setStorageSync('token', res.data.data);
-                  }
-                  // 保存或者更新用户信息
-                  wx.getUserInfo({
-                    success: res => {
-                      wx.request({
-                        url: updateUserInfo,
-                        data: res.userInfo,
-                        method: "POST",
-                        header: {
-                          'content-type': 'application/json',
-                        },
-                        success: function (res) {
-                          console.log("success");
-                        },
-                        fail: function (error) {
-                          console.log(error);
+          wx.checkSession({
+            success:function(res){
+              if (!that.hasLogin) {
+                that.setData({
+                  isHide: true,
+                });
+              }
+            },
+            fail:function(res){
+             wx.showModal({
+              title: '提示',
+              content: '你的登录信息过期了，请重新登录',
+             });
+             wx.login({
+                success: res => {
+                  // 获取服务器的token
+                  wx.request({
+                    url: getToken,
+                    method: 'GET',
+                    header: {
+                      'content-type': 'application/json' // 默认值
+                    },
+                    data: {
+                      code: res.code
+                    },
+                    success: function (res) {
+                      if (res.data.code == 0) {
+                        wx.setStorageSync('userInfo', e.detail.userInfo);
+                        wx.setStorageSync('token', res.data.data);
+                        that.setData({
+                          hasLogin: true,
+                          userInfo: e.detail.userInfo
+                        });
+                      }
+                      // 保存或者更新用户信息
+                      wx.getUserInfo({
+                        success: res => {
+                          wx.request({
+                            url: updateUserInfo,
+                            data: res.userInfo,
+                            method: "POST",
+                            header: {
+                              'content-type': 'application/json',
+                            },
+                            success: function (res) {
+                              that.setData({
+                                hasLogin: true
+                              });
+                            },
+                            fail: function (error) {
+                              console.log(error);
+                            }
+                          });
                         }
                       });
                     }
@@ -67,8 +86,8 @@ Page({
   },
 
   bindGetUserInfo: function (e) {
+    let that = this;
     if (e.detail.userInfo) {
-      wx.setStorageSync('userInfo', e.detail.userInfo);
       // 用户已经授权过,不需要显示授权页面,所以不需要改变 isHide 的值
       wx.login({
         success: res => {
@@ -84,7 +103,17 @@ Page({
             },
             success: function (res) {
               if (res.data.code == 0) {
+                wx.setStorageSync('userInfo', e.detail.userInfo);
                 wx.setStorageSync('token', res.data.data);
+                that.setData({
+                  hasLogin: true,
+                  userInfo: e.detail.userInfo
+                });
+              }else{
+                wx.showToast({
+                  title: '稍后重试'
+                });
+                return;
               }
               // 保存或者更新用户信息
               wx.getUserInfo({
@@ -95,10 +124,14 @@ Page({
                     method: "POST",
                     header: {
                       'content-type': 'application/json',
+                      'Authorization': 'HTSS ' + wx.getStorageSync('token')
                     },
                     success: function (res) {
+                      that.setData({
+                        hasLogin: true
+                      });
                       //跳转到注册页面
-                      wx.navigateTo({
+                      wx.redirectTo({
                         url: '/pages/register/register'
                       })
                     },
@@ -109,6 +142,16 @@ Page({
                     }
                   });
                 }
+              });
+            },
+            fail: function(res) {
+              wx.setStorageSync('userInfo', "");
+              wx.showToast({
+                title: '服务器维护中...',
+               });
+              that.setData({
+                isHide: true,
+                hasLogin: false
               });
             }
           });

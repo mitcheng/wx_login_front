@@ -27,11 +27,11 @@ Page({
             console.log('用户点击取消')
           }
         }
-      })
-
-
+      });
       return;
     }
+    // 调用到后台更新代码
+    
     wx.switchTab({
       url: '/pages/discover/discover'
     })
